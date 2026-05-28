@@ -61,3 +61,53 @@ Next implementation target: three-day home routine with movement and action time
 - Day 3: movement is much slower, task timers stretch further, and Lacey skips the bathroom after watching TV.
 - Day 4: breakfast, school work, and TV repeat; while watching TV, Lacey falls asleep on the couch.
 - Day 5 setup: the prototype now ends with Lacey waking on the couch and unable to stand, ready for the twelve couch-year scenes.
+
+## Couch-Era Control Shift
+
+- The couch becomes the fixed player position.
+- Movement is disabled.
+- The camera sits low on the couch, slightly tilted upward and right.
+- The mouse position drives the camera within a limited view cone rather than controlling a free first-person look.
+- Looking near the edge of the view increases vignette and chromatic blur.
+- Clickable hotspots replace walking interactions: TV, food, hallway, window, and later clues for the optional good ending.
+
+## Implemented Couch Scenes
+
+Scene 1:
+
+- Lacey wakes on the couch and realizes she is stuck.
+- The player clicks to try getting up.
+- A 10-second progress attempt reaches only 20%, then fails.
+- The player clicks to call for help.
+- Lacey can only say a normal-volume "help".
+- Silence, dot pause, "It's so quiet", more silence.
+- Parents enter from the right-side hallway/entrance area and say they are going on vacation again.
+- The argument plays out: Lacey says she cannot get up, mother says to get off the couch if she wants to come.
+- Parents turn on the TV and leave.
+- The player clicks the TV to fall asleep.
+
+Scene 2:
+
+- Parents return from vacation.
+- They ask how Lacey has been.
+- Lacey can only mutter "ba-" instead of "bad".
+- A silence pause plays.
+- Mother brings food and places it on the table in front of the TV.
+- The player clicks the food.
+- Lacey thinks about how good it looks but cannot reach it.
+- Thirty seconds pass toward night with boredom dialogue and an early scary hallway figure event.
+- Mother returns, turns on the TV, says goodnight, and Lacey falls asleep.
+
+Scene 3:
+
+- The TV is still running while Lacey's parents watch it.
+- The player clicks the parents to zoom in and hear Lacey question whether they understand she cannot move.
+- After the camera pulls back, a breathing sound comes from behind the couch and Lacey tries to dismiss it.
+- Ten seconds later the parents leave without saying anything.
+- The player gets investigation time with hotspots for keys, pills, painting, part of the window, hallway, couch end, opened TV cabinet, and the TV.
+- Clicking the TV ends investigation time and continues the scene.
+- Inspecting the pills lets the player notice the lid. The lid flashes green until clicked, then flashes yellow and records the good-ending clue.
+- A knock comes at the front door. The parents answer in the hallway, and the visitor is too distant to understand.
+- The parents say, "No sir, everything is fine, thank you," making Lacey question what happened.
+- Mother brings food again; Lacey can only look at it.
+- The player clicks the TV again to sleep, ending at the Scene 4 placeholder.
