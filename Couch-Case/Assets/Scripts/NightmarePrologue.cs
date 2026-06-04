@@ -84,20 +84,33 @@ public sealed class NightmarePrologue : MonoBehaviour
     private Transform mom;
     private Transform dad;
     private GameObject foodPlate;
+    private GameObject forgottenKeys;
+    private GameObject pillBottle;
     private GameObject tvGlow;
     private GameObject hallwayFigure;
     private GameObject pillsLid;
+    private GameObject crookedPainting;
     private Renderer pillsLidRenderer;
     private Color pillsLidBaseColor;
     private GameObject bedroomDoor;
     private Collider bedroomDoorCollider;
+    private GameObject bathroomDoor;
+    private Collider bathroomDoorCollider;
     private Light livingRoomLight;
     private bool bedroomDoorOpen;
+    private bool bathroomDoorOpen;
+    private Vector3 bedroomDoorClosedPosition;
+    private Quaternion bedroomDoorClosedRotation;
+    private Vector3 bathroomDoorClosedPosition;
+    private Quaternion bathroomDoorClosedRotation;
     private bool skipShortcutUsed;
     private float couchBaseYaw = 0f;
     private float couchBasePitch = -10f;
     private const float CouchYawLimit = 67.5f;
     private const float CouchPitchLimit = 24f;
+    private static readonly Vector3 CouchLyingCameraPosition = new Vector3(0.12f, 0.68f, 0.22f);
+    private static readonly Vector3 CouchStrainingCameraPosition = new Vector3(0.14f, 1.02f, 0.38f);
+    private Transform handmadeHomeRoot;
 
     private void Awake()
     {
@@ -362,6 +375,11 @@ public sealed class NightmarePrologue : MonoBehaviour
 
     private void BuildHomeLayout(Transform root)
     {
+        if (BuildHandmadeHomeLayout(root))
+        {
+            return;
+        }
+
         GameObject home = new GameObject("Fletcher House Layout Blockout");
         home.transform.SetParent(root);
 
@@ -370,70 +388,84 @@ public sealed class NightmarePrologue : MonoBehaviour
         Color kitchenFloor = new Color(0.2f, 0.21f, 0.18f);
         Color houseWall = new Color(0.3f, 0.27f, 0.23f);
 
-        CreateCube("Continuous House Subfloor", home.transform, new Vector3(0f, -0.09f, -19.1f), new Vector3(14.5f, 0.08f, 13.8f), carpet * 0.72f);
-        CreateCube("Bedroom Floor", home.transform, new Vector3(-5f, -0.04f, -14.5f), new Vector3(4f, 0.08f, 3f), carpet);
-        CreateCube("Bathroom Floor", home.transform, new Vector3(-1f, -0.04f, -14.5f), new Vector3(4f, 0.08f, 3f), tile);
-        CreateCube("Kitchen Floor", home.transform, new Vector3(3.5f, -0.04f, -14.5f), new Vector3(5f, 0.08f, 3f), kitchenFloor);
-        CreateCube("Hallway Floor", home.transform, new Vector3(-3f, -0.04f, -18f), new Vector3(6f, 0.08f, 3.2f), carpet * 0.8f);
-        CreateCube("Living Room Square Floor", home.transform, new Vector3(0f, -0.04f, -21.25f), new Vector3(6f, 0.08f, 4.7f), carpet);
-        CreateHalfCircleFloor("Living Room Rounded Floor", home.transform, new Vector3(0f, 0.015f, -23.2f), 3f, 18, carpet);
-        CreateCube("Entrance Floor", home.transform, new Vector3(5f, -0.04f, -20f), new Vector3(4f, 0.08f, 7.2f), tile * 0.8f);
-        CreateCube("House Ceiling", home.transform, new Vector3(0f, 2.72f, -19f), new Vector3(14.4f, 0.12f, 13.2f), houseWall * 0.65f);
+        CreateCube("Continuous House Floor", home.transform, new Vector3(0f, -0.12f, -19.15f), new Vector3(14.4f, 0.04f, 13.8f), carpet * 0.7f);
+        CreateCube("Bedroom Floor", home.transform, new Vector3(-5.25f, -0.04f, -14.5f), new Vector3(3.4f, 0.08f, 3f), carpet);
+        CreateCube("Bathroom Floor", home.transform, new Vector3(-1.65f, -0.04f, -14.5f), new Vector3(3.8f, 0.08f, 3f), tile);
+        CreateCube("Kitchen Floor", home.transform, new Vector3(2.75f, -0.04f, -14.5f), new Vector3(5f, 0.08f, 3f), kitchenFloor);
+        CreateCube("Hallway Floor", home.transform, new Vector3(-1.25f, -0.04f, -17.95f), new Vector3(10.2f, 0.08f, 3.55f), carpet * 0.82f);
+        CreateCube("Living Room Square Floor", home.transform, new Vector3(0f, -0.04f, -21.35f), new Vector3(6.8f, 0.08f, 5.25f), carpet * 0.95f);
+        CreateHalfCircleFloor("Living Room Rounded Floor", home.transform, new Vector3(0f, 0.015f, -23.2f), 3.45f, 18, carpet * 0.95f);
+        CreateCube("Entrance Floor", home.transform, new Vector3(5.3f, -0.04f, -20.85f), new Vector3(3.65f, 0.08f, 9.15f), tile * 0.78f);
+        CreateCube("House Ceiling", home.transform, new Vector3(0.1f, 2.72f, -19f), new Vector3(14.2f, 0.12f, 13.2f), houseWall * 0.62f);
 
-        CreateCube("Back Exterior Wall", home.transform, new Vector3(-0.5f, 1.35f, -12.95f), new Vector3(13.2f, 2.7f, 0.12f), houseWall);
-        CreateCube("Bedroom Left Wall", home.transform, new Vector3(-7.05f, 1.35f, -16.5f), new Vector3(0.12f, 2.7f, 7f), houseWall * 0.85f);
-        CreateCube("Kitchen Right Wall", home.transform, new Vector3(6.05f, 1.35f, -16.5f), new Vector3(0.12f, 2.7f, 7f), houseWall * 0.9f);
-        CreateCube("Entrance Right Wall", home.transform, new Vector3(7.05f, 1.35f, -21.8f), new Vector3(0.12f, 2.7f, 6.4f), houseWall * 0.85f);
-        CreateCube("Living Room Left Wall", home.transform, new Vector3(-3.05f, 1.35f, -21.65f), new Vector3(0.12f, 2.7f, 5.1f), houseWall * 0.75f);
-        CreateCube("Living Room Right Wall", home.transform, new Vector3(3.05f, 1.35f, -21.55f), new Vector3(0.12f, 2.7f, 5.3f), houseWall * 0.75f);
-        CreateCube("Living Room Back Wall Left", home.transform, new Vector3(-1.85f, 1.35f, -18.95f), new Vector3(2.3f, 2.7f, 0.12f), houseWall * 0.78f);
-        CreateCube("Living Room Back Wall Right", home.transform, new Vector3(2.05f, 1.35f, -18.95f), new Vector3(1.9f, 2.7f, 0.12f), houseWall * 0.78f);
-        CreateArcWalls(home.transform, new Vector3(0f, 1.35f, -23.2f), 3.05f, 11, houseWall * 0.7f);
-        CreateCube("Bedroom Bathroom Wall", home.transform, new Vector3(-3f, 1.35f, -14.5f), new Vector3(0.12f, 2.7f, 3f), houseWall);
-        CreateCube("Bathroom Kitchen Wall", home.transform, new Vector3(1.05f, 1.35f, -14.3f), new Vector3(0.12f, 2.7f, 2.6f), houseWall);
-        CreateCube("Bedroom Front Wall Left", home.transform, new Vector3(-6.18f, 1.35f, -16.05f), new Vector3(1.65f, 2.7f, 0.12f), houseWall * 0.8f);
-        CreateCube("Bedroom Front Wall Right", home.transform, new Vector3(-3.18f, 1.35f, -16.05f), new Vector3(0.35f, 2.7f, 0.12f), houseWall * 0.8f);
-        CreateCube("Bedroom Door Header", home.transform, new Vector3(-4.55f, 2.43f, -16.13f), new Vector3(1.55f, 0.58f, 0.22f), houseWall * 0.78f);
-        CreateCube("Bedroom Door Left Jamb", home.transform, new Vector3(-5.28f, 1.35f, -16.13f), new Vector3(0.28f, 2.7f, 0.22f), houseWall * 0.78f);
-        CreateCube("Bedroom Door Right Jamb", home.transform, new Vector3(-3.82f, 1.35f, -16.13f), new Vector3(0.28f, 2.7f, 0.22f), houseWall * 0.78f);
-        CreateCube("Bedroom Door Threshold", home.transform, new Vector3(-4.55f, 0.04f, -16.13f), new Vector3(1.45f, 0.08f, 0.28f), carpet * 0.6f);
-        CreateCube("Bathroom Front Wall Left", home.transform, new Vector3(-2.48f, 1.35f, -16.05f), new Vector3(0.95f, 2.7f, 0.12f), houseWall * 0.8f);
-        CreateCube("Bathroom Front Wall Right", home.transform, new Vector3(0.35f, 1.35f, -16.05f), new Vector3(1.3f, 2.7f, 0.12f), houseWall * 0.8f);
-        CreateCube("Bathroom Door Header", home.transform, new Vector3(-1.25f, 2.43f, -16.13f), new Vector3(1.2f, 0.58f, 0.22f), houseWall * 0.78f);
-        CreateCube("Bathroom Door Left Jamb", home.transform, new Vector3(-1.9f, 1.35f, -16.13f), new Vector3(0.22f, 2.7f, 0.22f), houseWall * 0.78f);
-        CreateCube("Bathroom Door Right Jamb", home.transform, new Vector3(-0.58f, 1.35f, -16.13f), new Vector3(0.22f, 2.7f, 0.22f), houseWall * 0.78f);
-        CreateCube("Entrance Left Exterior Wall", home.transform, new Vector3(3.18f, 1.35f, -23.9f), new Vector3(0.24f, 2.7f, 2.8f), houseWall * 0.76f);
-        CreateCube("Entrance Back Wall Left", home.transform, new Vector3(4.15f, 1.35f, -16.35f), new Vector3(1.9f, 2.7f, 0.24f), houseWall * 0.76f);
-        CreateCube("Entrance Back Wall Right", home.transform, new Vector3(6.15f, 1.35f, -16.35f), new Vector3(1.7f, 2.7f, 0.24f), houseWall * 0.76f);
-        CreateCube("Entrance Door Header", home.transform, new Vector3(5.4f, 2.42f, -25.25f), new Vector3(1.55f, 0.58f, 0.24f), houseWall * 0.72f);
-        CreateCube("Entrance Door Left Jamb", home.transform, new Vector3(4.67f, 1.35f, -25.25f), new Vector3(0.24f, 2.7f, 0.24f), houseWall * 0.72f);
-        CreateCube("Entrance Door Right Jamb", home.transform, new Vector3(6.13f, 1.35f, -25.25f), new Vector3(0.24f, 2.7f, 0.24f), houseWall * 0.72f);
-        CreateCube("Front Door", home.transform, new Vector3(5.4f, 1.1f, -25.32f), new Vector3(1.12f, 2.2f, 0.1f), new Color(0.16f, 0.09f, 0.05f));
-        CreateCube("Hallway Bottom Wall", home.transform, new Vector3(-4.6f, 1.35f, -19.55f), new Vector3(4.7f, 2.7f, 0.12f), houseWall * 0.8f);
-        CreateCube("Entrance Bottom Left", home.transform, new Vector3(4.45f, 1.35f, -25.25f), new Vector3(1.4f, 2.7f, 0.12f), houseWall * 0.8f);
-        CreateCube("Entrance Bottom Right", home.transform, new Vector3(6.4f, 1.35f, -25.25f), new Vector3(1.4f, 2.7f, 0.12f), houseWall * 0.8f);
+        CreateCube("Top Exterior Wall", home.transform, new Vector3(-0.25f, 1.35f, -12.95f), new Vector3(13.4f, 2.7f, 0.12f), houseWall);
+        CreateCube("Bedroom Left Exterior Wall", home.transform, new Vector3(-6.95f, 1.35f, -16.25f), new Vector3(0.12f, 2.7f, 6.6f), houseWall * 0.88f);
+        CreateCube("Kitchen Right Exterior Wall", home.transform, new Vector3(5.85f, 1.35f, -14.75f), new Vector3(0.12f, 2.7f, 3.6f), houseWall * 0.88f);
+        CreateCube("Entrance Right Exterior Wall", home.transform, new Vector3(6.95f, 1.35f, -20.85f), new Vector3(0.12f, 2.7f, 8.8f), houseWall * 0.85f);
+        CreateCube("Entrance Left Wall", home.transform, new Vector3(3.7f, 1.35f, -22.1f), new Vector3(0.12f, 2.7f, 5.9f), houseWall * 0.8f);
+        CreateArcWalls(home.transform, new Vector3(0f, 1.35f, -23.2f), 3.05f, 11, houseWall * 0.72f);
 
-        CreateCube("Bedroom Bed Base", home.transform, new Vector3(-5.5f, 0.35f, -14.4f), new Vector3(1.8f, 0.7f, 2.1f), new Color(0.18f, 0.13f, 0.12f));
-        CreateCube("Bedroom Pillow", home.transform, new Vector3(-5.5f, 0.9f, -13.55f), new Vector3(1.4f, 0.18f, 0.55f), new Color(0.62f, 0.58f, 0.52f));
-        bedroomDoor = CreateCube("Bedroom Door", home.transform, new Vector3(-4.55f, 1.1f, -16.05f), new Vector3(1f, 2.2f, 0.1f), new Color(0.18f, 0.1f, 0.055f));
+        CreateCube("Bedroom Bathroom Wall", home.transform, new Vector3(-3.55f, 1.35f, -14.5f), new Vector3(0.12f, 2.7f, 3f), houseWall);
+        CreateCube("Bathroom Kitchen Wall", home.transform, new Vector3(0.25f, 1.35f, -14.5f), new Vector3(0.12f, 2.7f, 3f), houseWall);
+        CreateCube("Bedroom Bottom Wall Left", home.transform, new Vector3(-6.15f, 1.35f, -16.05f), new Vector3(1.6f, 2.7f, 0.12f), houseWall * 0.82f);
+        CreateCube("Bedroom Bottom Wall Right", home.transform, new Vector3(-3.95f, 1.35f, -16.05f), new Vector3(0.7f, 2.7f, 0.12f), houseWall * 0.82f);
+        CreateCube("Bathroom Bottom Wall Left", home.transform, new Vector3(-2.65f, 1.35f, -16.05f), new Vector3(1.8f, 2.7f, 0.12f), houseWall * 0.82f);
+        CreateCube("Bathroom Bottom Wall Right", home.transform, new Vector3(-0.2f, 1.35f, -16.05f), new Vector3(0.9f, 2.7f, 0.12f), houseWall * 0.82f);
+
+        CreateCube("Bedroom Door Header", home.transform, new Vector3(-4.85f, 2.43f, -16.12f), new Vector3(1.3f, 0.58f, 0.22f), houseWall * 0.78f);
+        CreateCube("Bathroom Door Header", home.transform, new Vector3(-1.25f, 2.43f, -16.12f), new Vector3(1.3f, 0.58f, 0.22f), houseWall * 0.78f);
+        bedroomDoor = CreateCube("Bedroom Door", home.transform, new Vector3(-4.85f, 1.1f, -16.05f), new Vector3(1.05f, 2.2f, 0.1f), new Color(0.18f, 0.1f, 0.055f));
         bedroomDoorCollider = bedroomDoor.GetComponent<Collider>();
-        CreateCube("Homework Desk", home.transform, new Vector3(-3.28f, 0.45f, -14.55f), new Vector3(0.75f, 0.9f, 1.45f), deskColor);
-        CreateCube("Bathroom Sink", home.transform, new Vector3(-1.4f, 0.55f, -13.65f), new Vector3(1f, 1.1f, 0.55f), new Color(0.52f, 0.55f, 0.54f));
-        CreateCube("Kitchen Table", home.transform, new Vector3(3.6f, 0.45f, -14.8f), new Vector3(1.5f, 0.9f, 1.1f), new Color(0.26f, 0.18f, 0.12f));
-        CreateCube("Kitchen Plate", home.transform, new Vector3(3.6f, 0.94f, -14.8f), new Vector3(0.48f, 0.04f, 0.48f), new Color(0.72f, 0.68f, 0.58f));
+        bedroomDoorClosedPosition = bedroomDoor.transform.position;
+        bedroomDoorClosedRotation = bedroomDoor.transform.rotation;
+        bathroomDoor = CreateCube("Bathroom Door", home.transform, new Vector3(-1.25f, 1.1f, -16.05f), new Vector3(1.05f, 2.2f, 0.1f), new Color(0.16f, 0.09f, 0.055f));
+        bathroomDoorCollider = bathroomDoor.GetComponent<Collider>();
+        bathroomDoorClosedPosition = bathroomDoor.transform.position;
+        bathroomDoorClosedRotation = bathroomDoor.transform.rotation;
+
+        CreateCube("Entrance Door Header", home.transform, new Vector3(5.35f, 2.42f, -25.25f), new Vector3(1.55f, 0.58f, 0.24f), houseWall * 0.72f);
+        CreateCube("Entrance Door Left Jamb", home.transform, new Vector3(4.62f, 1.35f, -25.25f), new Vector3(0.24f, 2.7f, 0.24f), houseWall * 0.72f);
+        CreateCube("Entrance Door Right Jamb", home.transform, new Vector3(6.08f, 1.35f, -25.25f), new Vector3(0.24f, 2.7f, 0.24f), houseWall * 0.72f);
+        CreateCube("Entrance Bottom Left Wall", home.transform, new Vector3(4.1f, 1.35f, -25.25f), new Vector3(0.8f, 2.7f, 0.12f), houseWall * 0.8f);
+        CreateCube("Entrance Bottom Right Wall", home.transform, new Vector3(6.5f, 1.35f, -25.25f), new Vector3(0.9f, 2.7f, 0.12f), houseWall * 0.8f);
+        CreateCube("Locked Entrance Door", home.transform, new Vector3(5.35f, 1.1f, -25.32f), new Vector3(1.12f, 2.2f, 0.1f), new Color(0.16f, 0.09f, 0.05f));
+
+        CreateCube("Bedroom Bed Base", home.transform, new Vector3(-5.65f, 0.35f, -14.35f), new Vector3(1.55f, 0.7f, 2.25f), new Color(0.18f, 0.13f, 0.12f));
+        CreateCube("Bedroom Pillow", home.transform, new Vector3(-5.65f, 0.9f, -13.45f), new Vector3(1.2f, 0.18f, 0.5f), new Color(0.62f, 0.58f, 0.52f));
+        CreateCube("Homework Desk", home.transform, new Vector3(-4.05f, 0.45f, -14.35f), new Vector3(0.85f, 0.9f, 1.15f), deskColor);
+
+        CreateCube("Bathroom Toilet Tank", home.transform, new Vector3(-2.7f, 0.45f, -13.75f), new Vector3(0.65f, 0.9f, 0.34f), new Color(0.62f, 0.64f, 0.61f));
+        CreateCylinder("Bathroom Toilet Bowl", home.transform, new Vector3(-2.7f, 0.45f, -14.25f), new Vector3(0.45f, 0.18f, 0.55f), new Color(0.68f, 0.7f, 0.66f));
+        CreateCube("Bathroom Shower", home.transform, new Vector3(-0.55f, 0.45f, -13.8f), new Vector3(1.05f, 0.9f, 1.05f), new Color(0.36f, 0.4f, 0.42f));
+        CreateCube("Bathroom Sink", home.transform, new Vector3(-0.65f, 0.55f, -15.05f), new Vector3(0.85f, 1.1f, 0.48f), new Color(0.52f, 0.55f, 0.54f));
+
+        CreateCube("Kitchen Counter Back", home.transform, new Vector3(3.2f, 0.55f, -13.55f), new Vector3(4.6f, 1.1f, 0.65f), new Color(0.24f, 0.17f, 0.11f));
+        CreateCube("Kitchen Counter Right", home.transform, new Vector3(5.15f, 0.55f, -14.55f), new Vector3(0.65f, 1.1f, 1.8f), new Color(0.24f, 0.17f, 0.11f));
+        CreateCube("Kitchen Plate", home.transform, new Vector3(3.25f, 1.12f, -13.55f), new Vector3(0.48f, 0.04f, 0.48f), new Color(0.72f, 0.68f, 0.58f));
+
+        CreateCube("Coat Rack Pole", home.transform, new Vector3(6.35f, 0.75f, -23.85f), new Vector3(0.12f, 1.5f, 0.12f), new Color(0.11f, 0.08f, 0.055f));
+        GameObject coatRackArmA = CreateCube("Coat Rack Arm A", home.transform, new Vector3(6.35f, 1.45f, -23.85f), new Vector3(0.85f, 0.08f, 0.08f), new Color(0.11f, 0.08f, 0.055f));
+        coatRackArmA.transform.rotation = Quaternion.Euler(0f, 35f, 0f);
+        GameObject coatRackArmB = CreateCube("Coat Rack Arm B", home.transform, new Vector3(6.35f, 1.35f, -23.85f), new Vector3(0.08f, 0.08f, 0.85f), new Color(0.11f, 0.08f, 0.055f));
+        coatRackArmB.transform.rotation = Quaternion.Euler(0f, 35f, 0f);
+        CreateCube("Umbrella Stand", home.transform, new Vector3(6.2f, 0.28f, -23.55f), new Vector3(0.35f, 0.56f, 0.35f), new Color(0.07f, 0.07f, 0.06f));
+
         CreateCube("Living Room Couch", home.transform, new Vector3(0f, 0.42f, -24.7f), new Vector3(2.2f, 0.85f, 1.05f), new Color(0.22f, 0.18f, 0.14f));
         CreateCube("Couch Cushion", home.transform, new Vector3(0f, 0.9f, -24.7f), new Vector3(2.05f, 0.16f, 0.9f), new Color(0.34f, 0.29f, 0.23f));
+        CreateCube("Second Living Room Couch", home.transform, new Vector3(1.9f, 0.42f, -22.35f), new Vector3(1.05f, 0.85f, 1.65f), new Color(0.19f, 0.16f, 0.13f));
+        CreateCylinder("Oval Coffee Table", home.transform, new Vector3(-0.55f, 0.45f, -22.65f), new Vector3(1.55f, 0.12f, 0.95f), new Color(0.22f, 0.13f, 0.08f));
         CreateCube("TV Stand", home.transform, new Vector3(-2.55f, 0.45f, -22.4f), new Vector3(0.55f, 0.9f, 1.5f), new Color(0.12f, 0.08f, 0.06f));
         CreateCube("Old TV", home.transform, new Vector3(-2.72f, 1.05f, -22.4f), new Vector3(0.42f, 0.8f, 1.15f), new Color(0.04f, 0.04f, 0.045f));
         tvGlow = CreateCube("TV Glow", home.transform, new Vector3(-2.95f, 1.06f, -22.4f), new Vector3(0.04f, 0.58f, 0.9f), new Color(0.02f, 0.03f, 0.035f));
         CreateCube("Opened Cabinet Under TV", home.transform, new Vector3(-2.45f, 0.16f, -21.85f), new Vector3(0.55f, 0.28f, 0.7f), new Color(0.06f, 0.04f, 0.03f));
-        CreateCube("Forgotten Keys", home.transform, new Vector3(-1.6f, 0.78f, -22.15f), new Vector3(0.42f, 0.04f, 0.12f), new Color(0.86f, 0.72f, 0.28f));
-        CreateCube("Pill Bottle", home.transform, new Vector3(-1.25f, 0.78f, -22.45f), new Vector3(0.18f, 0.32f, 0.18f), new Color(0.75f, 0.74f, 0.66f));
-        pillsLid = CreateCube("Pill Bottle Lid", home.transform, new Vector3(-1.25f, 1f, -22.45f), new Vector3(0.24f, 0.08f, 0.24f), new Color(0.38f, 0.38f, 0.36f));
+        CreateCube("Living Room Window Sliver", home.transform, new Vector3(-3.08f, 1.35f, -23.65f), new Vector3(0.04f, 0.9f, 0.7f), new Color(0.08f, 0.12f, 0.14f));
+        CreateCube("Forgotten Keys", home.transform, new Vector3(-1.15f, 0.76f, -22.35f), new Vector3(0.42f, 0.04f, 0.12f), new Color(0.86f, 0.72f, 0.28f));
+        CreateCube("Pill Bottle", home.transform, new Vector3(-0.55f, 0.78f, -22.55f), new Vector3(0.18f, 0.32f, 0.18f), new Color(0.75f, 0.74f, 0.66f));
+        pillsLid = CreateCube("Pill Bottle Lid", home.transform, new Vector3(-0.55f, 1f, -22.55f), new Vector3(0.24f, 0.08f, 0.24f), new Color(0.38f, 0.38f, 0.36f));
         pillsLidRenderer = pillsLid.GetComponent<Renderer>();
         pillsLidBaseColor = pillsLidRenderer.material.color;
         CreateCube("Crooked Painting", home.transform, new Vector3(1.6f, 1.45f, -18.9f), new Vector3(0.9f, 0.65f, 0.05f), new Color(0.28f, 0.22f, 0.15f));
-        foodPlate = CreateCube("Couch Food Plate", home.transform, new Vector3(-1f, 0.75f, -22.8f), new Vector3(0.48f, 0.05f, 0.48f), new Color(0.22f, 0.18f, 0.13f));
+        foodPlate = CreateCube("Couch Food Plate", home.transform, new Vector3(-0.8f, 0.75f, -22.85f), new Vector3(0.48f, 0.05f, 0.48f), new Color(0.22f, 0.18f, 0.13f));
         foodPlate.SetActive(false);
 
         mom = CreatePersonObject("Mother", home.transform, new Vector3(4.8f, 0f, -19.2f), new Color(0.18f, 0.12f, 0.12f));
@@ -447,27 +479,255 @@ public sealed class NightmarePrologue : MonoBehaviour
         CreateLight("Kitchen Overhead", home.transform, new Vector3(3.4f, 2.35f, -14.6f), LightType.Point, new Color(0.8f, 0.74f, 0.55f), 2.6f, 7f);
         livingRoomLight = CreateLight("Living Room TV Spill", home.transform, new Vector3(-1.5f, 1.9f, -22.3f), LightType.Point, new Color(0.35f, 0.48f, 0.65f), 1.1f, 7f);
 
-        AddRoutineInteraction("Routine Bed Trigger", new Vector3(-5.5f, 0.8f, -14.4f), new Vector3(1.8f, 1.6f, 2.2f), "Wake", "Get up");
-        AddInteraction("Bedroom Door Trigger", new Vector3(-4.55f, 0.9f, -15.78f), new Vector3(0.8f, 1.4f, 0.8f), "Open bedroom door", OpenBedroomDoor);
-        AddRoutineInteraction("Routine Breakfast Trigger", new Vector3(3.6f, 0.8f, -14.8f), new Vector3(1.8f, 1.6f, 1.5f), "Breakfast", "Eat breakfast");
-        AddRoutineInteraction("Routine Homework Trigger", new Vector3(-3.55f, 0.8f, -14.55f), new Vector3(1.1f, 1.5f, 1.6f), "Homework", "Do school work");
+        AddRoutineInteraction("Routine Bed Trigger", new Vector3(-5.65f, 0.8f, -14.35f), new Vector3(1.8f, 1.6f, 2.25f), "Wake", "Get up");
+        AddInteraction("Bedroom Door Trigger", new Vector3(-4.85f, 0.9f, -16.25f), new Vector3(1.4f, 1.4f, 1f), "Open/close bedroom door", ToggleBedroomDoor);
+        AddInteraction("Bathroom Door Trigger", new Vector3(-1.25f, 0.9f, -16.25f), new Vector3(1.4f, 1.4f, 1f), "Open/close bathroom door", ToggleBathroomDoor);
+        AddInteraction("Entrance Door Trigger", new Vector3(5.35f, 0.9f, -24.85f), new Vector3(1.5f, 1.4f, 1.1f), "Try entrance door", TryLockedEntranceDoor);
+        AddRoutineInteraction("Routine Breakfast Trigger", new Vector3(3.25f, 0.8f, -13.75f), new Vector3(2f, 1.6f, 1.25f), "Breakfast", "Eat breakfast");
+        AddRoutineInteraction("Routine Homework Trigger", new Vector3(-4.05f, 0.8f, -14.35f), new Vector3(1.2f, 1.5f, 1.4f), "Homework", "Do school work");
         AddRoutineInteraction("Routine TV Trigger", new Vector3(-1.6f, 0.8f, -22.4f), new Vector3(1.8f, 1.6f, 2f), "TV", "Watch TV");
-        AddRoutineInteraction("Routine Bathroom Trigger", new Vector3(-1.4f, 0.8f, -13.95f), new Vector3(1.7f, 1.6f, 1.7f), "Bathroom", "Use bathroom");
-        AddRoutineInteraction("Routine Sleep Trigger", new Vector3(-5.5f, 0.8f, -14.4f), new Vector3(1.8f, 1.6f, 2.2f), "Sleep", "Go back to bed");
+        AddRoutineInteraction("Routine Bathroom Trigger", new Vector3(-0.95f, 0.8f, -14.45f), new Vector3(1.7f, 1.6f, 1.7f), "Bathroom", "Use bathroom");
+        AddRoutineInteraction("Routine Sleep Trigger", new Vector3(-5.65f, 0.8f, -14.35f), new Vector3(1.8f, 1.6f, 2.25f), "Sleep", "Go back to bed");
         AddRoutineInteraction("Routine Couch Trigger", new Vector3(0f, 0.8f, -24.7f), new Vector3(2.4f, 1.6f, 1.4f), "Couch", "Rest on couch");
 
         AddCouchSpot("Couch TV Spot", new Vector3(-2.8f, 1.05f, -22.4f), new Vector3(0.6f, 1f, 1.4f), "TV", "The TV is the only thing that still moves for you.");
-        AddCouchSpot("Couch Food Spot", new Vector3(-1f, 0.85f, -22.8f), new Vector3(0.9f, 0.5f, 0.9f), "Food", "It smells warm. It might as well be across the street.");
+        AddCouchSpot("Couch Food Spot", new Vector3(-0.8f, 0.85f, -22.85f), new Vector3(0.9f, 0.5f, 0.9f), "Food", "It smells warm. It might as well be across the street.");
         AddCouchSpot("Couch Hallway Spot", new Vector3(3.05f, 1.25f, -20f), new Vector3(1.1f, 2f, 2.5f), "Hallway", "The hallway is where footsteps appear and disappear.");
         AddCouchSpot("Couch Window Spot", new Vector3(-2.6f, 1.25f, -24.2f), new Vector3(0.25f, 1.4f, 1.2f), "Window", "Something taps sometimes. You never see what made the sound.");
-        AddCouchSpot("Parents Couch Spot", new Vector3(2.7f, 1.15f, -21.3f), new Vector3(1.7f, 1.8f, 1.1f), "Parents", string.Empty);
-        AddCouchSpot("Keys Couch Spot", new Vector3(-1.6f, 0.86f, -22.15f), new Vector3(0.55f, 0.35f, 0.35f), "Key", "Looks like my parents forgot to take their keys with them.");
-        AddCouchSpot("Pills Couch Spot", new Vector3(-1.25f, 0.92f, -22.45f), new Vector3(0.5f, 0.6f, 0.5f), "Pills", "The bottle is close enough to read, but too far to reach.");
-        AddCouchSpot("Pills Lid Couch Spot", new Vector3(-1.25f, 1.02f, -22.45f), new Vector3(0.32f, 0.24f, 0.32f), "PillsLid", string.Empty);
+        AddCouchSpot("Parents Couch Spot", new Vector3(2.15f, 1.15f, -21.75f), new Vector3(1.7f, 1.8f, 1.3f), "Parents", string.Empty);
+        AddCouchSpot("Keys Couch Spot", new Vector3(-1.15f, 0.86f, -22.35f), new Vector3(0.55f, 0.35f, 0.35f), "Key", "Looks like my parents forgot to take their keys with them.");
+        AddCouchSpot("Pills Couch Spot", new Vector3(-0.55f, 0.92f, -22.55f), new Vector3(0.5f, 0.6f, 0.5f), "Pills", "The bottle is close enough to read, but too far to reach.");
+        AddCouchSpot("Pills Lid Couch Spot", new Vector3(-0.55f, 1.02f, -22.55f), new Vector3(0.32f, 0.24f, 0.32f), "PillsLid", string.Empty);
         AddCouchSpot("Painting Couch Spot", new Vector3(1.6f, 1.45f, -18.9f), new Vector3(1.1f, 0.85f, 0.4f), "Painting", "The painting has been crooked for years. No one ever fixes it.");
         AddCouchSpot("Couch End Spot", new Vector3(1.25f, 0.8f, -24.7f), new Vector3(0.65f, 0.8f, 0.9f), "CouchEnd", "The end of the couch feels impossibly far away.");
         AddCouchSpot("Opened Cabinet Spot", new Vector3(-2.45f, 0.42f, -21.85f), new Vector3(0.75f, 0.65f, 0.85f), "Cabinet", "The cabinet under the TV is open. Dust collects where hands used to go.");
         AddCouchSpot("Window Part Spot", new Vector3(-2.6f, 1.25f, -23.65f), new Vector3(0.35f, 1.3f, 0.8f), "WindowPart", "A thin piece of window catches the light. Outside might as well be a photograph.");
+    }
+
+    private bool BuildHandmadeHomeLayout(Transform root)
+    {
+        GameObject home = new GameObject("Handmade Fletcher House");
+        home.transform.SetParent(root);
+        handmadeHomeRoot = home.transform;
+        handmadeHomeRoot.position = new Vector3(0.55f, 0f, -18.48f);
+        handmadeHomeRoot.rotation = Quaternion.Euler(0f, 180f, 0f);
+        handmadeHomeRoot.localScale = new Vector3(0.55f, 0.36f, 0.58f);
+
+        CreateHandmadeBlock("House Floor", new Vector3(0f, 0f, 0f), new Vector3(60.06f, 0.15f, 64.6f), Quaternion.identity, floorColor * 0.85f);
+
+        Color wall = new Color(0.28f, 0.25f, 0.22f);
+        Color header = wall * 0.82f;
+        Color wood = new Color(0.22f, 0.13f, 0.075f);
+        Color couch = new Color(0.24f, 0.19f, 0.15f);
+        Color fixture = new Color(0.55f, 0.57f, 0.55f);
+
+        CreateHandmadeBlock("Cube (1)", new Vector3(0.25f, 3.8499997f, -9.58f), new Vector3(29.494078f, 7.6999993f, 0.20000002f), Quaternion.identity, wall);
+        CreateHandmadeBlock("Cube (2)", new Vector3(11.800001f, 3.8499997f, -3.58f), new Vector3(3.540992f, 7.4999995f, 0.20000002f), Quaternion.identity, wall);
+        CreateHandmadeBlock("Cube (3)", new Vector3(6.050001f, 3.8499997f, -7.08f), new Vector3(6.8096f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -90f, 0f), wall);
+        CreateHandmadeBlock("Cube (4)", new Vector3(13.550001f, 3.8499997f, -0.8299999f), new Vector3(21.109758f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -90f, 0f), wall);
+        CreateHandmadeBlock("Cube (6)", new Vector3(-1.4499989f, 3.8499997f, -7.08f), new Vector3(6.8096f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -90f, 0f), wall);
+        CreateHandmadeBlock("Cube (7)", new Vector3(10.050001f, 3.8499997f, 2.67f), new Vector3(7.081984f, 7.4999995f, 0.20000002f), Quaternion.identity, wall);
+        CreateHandmadeBlock("Cube (8)", new Vector3(-13.449999f, 3.8499997f, -2.079999f), new Vector3(23.15264f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -90f, 0f), wall);
+        CreateHandmadeBlock("Cube (9)", new Vector3(-4.949999f, 3.8499997f, 2.67f), new Vector3(0.7081984f, 7.4999995f, 0.20000002f), Quaternion.identity, wall);
+        CreateHandmadeBlock("Cube (10)", new Vector3(-5.1999984f, 3.8499997f, 6.170001f), new Vector3(6.966221f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -90f, 0f), wall);
+        CreateHandmadeBlock("Cube (11)", new Vector3(-4.699999f, 3.8499997f, 4.42f), new Vector3(3.608979f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -90f, 0f), wall);
+        CreateHandmadeBlock("Cube (12)", new Vector3(6.6058645f, 3.8499925f, 4.42f), new Vector3(3.608979f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -90f, 0f), wall);
+        CreateHandmadeBlock("Cube (13)", new Vector3(-4.1523314f, 3.8499997f, 6.782073f), new Vector3(5.1556845f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -75f, 0f), wall);
+        CreateHandmadeBlock("Cube (14)", new Vector3(-3.199101f, 3.8499997f, 9.373665f), new Vector3(5.1556845f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -60f, 0f), wall);
+        CreateHandmadeBlock("Cube (15)", new Vector3(-1.4313389f, 3.8499997f, 11.494989f), new Vector3(5.1556845f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -45f, 0f), wall);
+        CreateHandmadeBlock("Cube (16)", new Vector3(-0.19390288f, 3.8499997f, 12.025321f), new Vector3(5.1556845f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, -15f, 0f), wall);
+        CreateHandmadeBlock("Cube (17)", new Vector3(6.058198f, 3.8499925f, 6.782073f), new Vector3(5.1556845f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, 75f, 0f), wall);
+        CreateHandmadeBlock("Cube (18)", new Vector3(5.104969f, 3.849994f, 9.373665f), new Vector3(5.1556845f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, 60f, 0f), wall);
+        CreateHandmadeBlock("Cube (19)", new Vector3(3.3372068f, 3.8499973f, 11.494989f), new Vector3(5.1556845f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, 45f, 0f), wall);
+        CreateHandmadeBlock("Cube (20)", new Vector3(2.0997722f, 3.8499997f, 12.025321f), new Vector3(5.1556845f, 7.4999995f, 0.20000002f), Quaternion.Euler(0f, 15f, 0f), wall);
+        CreateHandmadeBlock("Cube (22)", new Vector3(8.300001f, 6.8499994f, -3.58f), new Vector3(3.540992f, 1.4999999f, 0.20000002f), Quaternion.identity, header);
+        CreateHandmadeBlock("Cube (23)", new Vector3(4.550001f, 3.8499997f, -3.58f), new Vector3(4.249191f, 7.4999995f, 0.20000002f), Quaternion.identity, wall);
+        CreateHandmadeBlock("Cube (24)", new Vector3(0.80000114f, 6.8499994f, -3.58f), new Vector3(3.540992f, 1.4999999f, 0.20000002f), Quaternion.identity, header);
+        CreateHandmadeBlock("Cube (25)", new Vector3(-1.1999989f, 3.8499997f, -3.58f), new Vector3(0.7648544f, 7.4999995f, 0.20000002f), Quaternion.identity, wall);
+        CreateHandmadeBlock("Cube (26)", new Vector3(-6.699999f, 3.8499997f, 9.67f), new Vector3(3.0594175f, 7.4999995f, 0.20000002f), Quaternion.identity, wall);
+        CreateHandmadeBlock("Cube (27)", new Vector3(-12.699999f, 3.8499997f, 9.67f), new Vector3(2.1100805f, 7.4999995f, 0.20000002f), Quaternion.identity, wall);
+        CreateHandmadeBlock("Cube (28)", new Vector3(-9.949999f, 6.8499994f, 9.67f), new Vector3(3.540992f, 1.4999999f, 0.20000002f), Quaternion.identity, header);
+
+        bedroomDoor = CreateHandmadeBlock("BedroomDoor", new Vector3(8.300001f, 3.0999997f, -3.58f), new Vector3(3.540992f, 5.9999995f, 0.20000002f), Quaternion.identity, wood);
+        bathroomDoor = CreateHandmadeBlock("BathroomDoor", new Vector3(0.80000114f, 3.0999997f, -3.58f), new Vector3(3.540992f, 5.9999995f, 0.20000002f), Quaternion.identity, wood * 0.9f);
+        CreateHandmadeBlock("FrontDoor", new Vector3(-9.949999f, 3.0999997f, 9.67f), new Vector3(3.540992f, 5.9999995f, 0.20000002f), Quaternion.identity, wood * 0.82f);
+
+        CreateHandmadeBlock("Bed", new Vector3(12.25f, 0.59999967f, -7.08f), new Vector3(2.8314316f, 1.2936f, 5.180761f), Quaternion.identity, new Color(0.2f, 0.13f, 0.12f));
+        CreateHandmadeBlock("Desk", new Vector3(8f, 0.59999967f, -8.58f), new Vector3(2.8314316f, 1.2936f, 2.0723045f), Quaternion.identity, deskColor);
+        CreateHandmadeBlock("Counter", new Vector3(-7.75f, 0.59999967f, -8.83f), new Vector3(12.782216f, 1.2936f, 2.320981f), Quaternion.identity, wood);
+        CreateHandmadeBlock("Counter part 2", new Vector3(-12.5f, 0.59999967f, -10.08f), new Vector3(12.782216f, 1.2936f, 2.320981f), Quaternion.Euler(0f, 90f, 0f), wood);
+        CreateHandmadeBlock("Toilet", new Vector3(4.5f, 0.59999967f, -8.58f), new Vector3(1.6988591f, 1.2936f, 1.6578436f), Quaternion.identity, fixture);
+        CreateHandmadeBlock("Shower", new Vector3(-0.25f, 0.59999967f, -8.58f), new Vector3(1.6988591f, 1.2936f, 1.6578436f), Quaternion.identity, new Color(0.36f, 0.4f, 0.42f));
+        CreateHandmadeBlock("Sink", new Vector3(-0.25f, 0.59999967f, -4.58f), new Vector3(1.6988591f, 1.2936f, 1.6578436f), Quaternion.identity, fixture);
+        CreateHandmadeBlock("Couch 2", new Vector3(-2.75f, 0.59999967f, 6.42f), new Vector3(1.6872526f, 1.2936f, 3.551101f), Quaternion.identity, couch * 0.88f);
+        CreateHandmadeBlock("MainCouch", new Vector3(1f, 0.59999967f, 10.67f), new Vector3(3.834665f, 1.2936f, 2.088883f), Quaternion.identity, couch);
+        CreateHandmadeBlock("Coffee Table", new Vector3(0.91926f, 0.57500005f, 6.31143f), new Vector3(2.52f, 0.32000002f, 3.8999999f), Quaternion.identity, new Color(0.2f, 0.12f, 0.08f));
+        CreateHandmadeBlock("DrawerBelowTV", new Vector3(4.75f, 0.34999967f, 6.67f), new Vector3(1.6872526f, 0.90551996f, 2.1306608f), Quaternion.identity, wood * 0.65f);
+        CreateHandmadeBlock("TV", new Vector3(4.75f, 1.3499997f, 6.67f), new Vector3(1.3498021f, 1.1771759f, 1.7045287f), Quaternion.identity, new Color(0.04f, 0.04f, 0.045f));
+
+        GameObject gameplayObject = new GameObject("Handmade House Gameplay Props");
+        gameplayObject.transform.SetParent(root);
+        Transform gameplayRoot = gameplayObject.transform;
+
+        tvGlow = CreateCube("TV Glow", gameplayRoot, HomePoint(new Vector3(4.95f, 1.35f, 6.67f)), new Vector3(0.05f, 0.45f, 0.8f), new Color(0.02f, 0.03f, 0.035f));
+        foodPlate = FindAuthoredObject("Couch Food Plate", "Food Plate", "Food", "Plate");
+        if (foodPlate == null)
+        {
+            foodPlate = CreateCube("Couch Food Plate", gameplayRoot, HomePoint(new Vector3(1.1f, 1.0f, 6.1f)), new Vector3(0.48f, 0.05f, 0.48f), new Color(0.22f, 0.18f, 0.13f));
+        }
+
+        forgottenKeys = FindAuthoredObject("Forgotten Keys", "Keys", "Key");
+        if (forgottenKeys == null)
+        {
+            forgottenKeys = CreateCube("Forgotten Keys", gameplayRoot, HomePoint(new Vector3(0.4f, 1.02f, 6.05f)), new Vector3(0.42f, 0.04f, 0.12f), new Color(0.86f, 0.72f, 0.28f));
+        }
+
+        pillBottle = FindAuthoredObject("Pill Bottle", "Pills", "PillBottle");
+        if (pillBottle == null)
+        {
+            pillBottle = CreateCube("Pill Bottle", gameplayRoot, HomePoint(new Vector3(0.9f, 1.02f, 6.05f)), new Vector3(0.18f, 0.32f, 0.18f), new Color(0.75f, 0.74f, 0.66f));
+        }
+
+        pillsLid = FindAuthoredObject("Pill Bottle Lid", "Pills Lid", "Pill Lid", "PillBottleLid");
+        if (pillsLid == null)
+        {
+            pillsLid = CreateCube("Pill Bottle Lid", gameplayRoot, HomePoint(new Vector3(0.9f, 1.25f, 6.05f)), new Vector3(0.24f, 0.08f, 0.24f), new Color(0.38f, 0.38f, 0.36f));
+        }
+
+        pillsLidRenderer = pillsLid.GetComponent<Renderer>();
+        if (pillsLidRenderer != null)
+        {
+            pillsLidBaseColor = pillsLidRenderer.material.color;
+        }
+
+        crookedPainting = FindAuthoredObject("Crooked Painting", "Painting");
+        if (crookedPainting == null)
+        {
+            crookedPainting = CreateCube("Crooked Painting", gameplayRoot, HomePoint(new Vector3(-1.2f, 4.2f, 4.1f)), new Vector3(0.9f, 0.65f, 0.05f), new Color(0.28f, 0.22f, 0.15f));
+        }
+
+        SetFoodVisible(false);
+        SetSceneThreeCluesVisible(false);
+
+        mom = CreatePersonObject("Mother", gameplayRoot, HomePoint(new Vector3(-7.7f, 0f, 3.2f)), new Color(0.18f, 0.12f, 0.12f));
+        dad = CreatePersonObject("Father", gameplayRoot, HomePoint(new Vector3(-8.7f, 0f, 3.6f)), new Color(0.12f, 0.13f, 0.16f));
+        mom.gameObject.SetActive(false);
+        dad.gameObject.SetActive(false);
+        hallwayFigure = CreatePersonObject("Hallway Figure", gameplayRoot, HomePoint(new Vector3(2.5f, 0f, -1.5f)), new Color(0.015f, 0.015f, 0.018f)).gameObject;
+        hallwayFigure.SetActive(false);
+
+        CreateLight("Bedroom Lamp", gameplayRoot, HomePoint(new Vector3(11f, 6.2f, -7f)), LightType.Point, new Color(0.95f, 0.66f, 0.42f), 2.3f, 6f);
+        CreateLight("Kitchen Overhead", gameplayRoot, HomePoint(new Vector3(-7f, 6.2f, -7.5f)), LightType.Point, new Color(0.8f, 0.74f, 0.55f), 2.6f, 7f);
+        livingRoomLight = CreateLight("Living Room TV Spill", gameplayRoot, HomePoint(new Vector3(3.2f, 5.2f, 6.8f)), LightType.Point, new Color(0.35f, 0.48f, 0.65f), 1.1f, 7f);
+
+        bedroomDoorCollider = bedroomDoor.GetComponent<Collider>();
+        bedroomDoorClosedPosition = bedroomDoor.transform.position;
+        bedroomDoorClosedRotation = bedroomDoor.transform.rotation;
+        bathroomDoorCollider = bathroomDoor.GetComponent<Collider>();
+        bathroomDoorClosedPosition = bathroomDoor.transform.position;
+        bathroomDoorClosedRotation = bathroomDoor.transform.rotation;
+
+        AddRoutineInteraction("Routine Bed Trigger", HomePoint(new Vector3(12.25f, 2.2f, -7.08f)), new Vector3(1.8f, 1.6f, 2.25f), "Wake", "Get up");
+        AddInteraction("Bedroom Door Trigger", HomePoint(new Vector3(8.3f, 2.5f, -3.25f)), new Vector3(1.7f, 1.5f, 1f), "Open/close bedroom door", ToggleBedroomDoor);
+        AddInteraction("Bathroom Door Trigger", HomePoint(new Vector3(0.8f, 2.5f, -3.25f)), new Vector3(1.7f, 1.5f, 1f), "Open/close bathroom door", ToggleBathroomDoor);
+        AddInteraction("Entrance Door Trigger", HomePoint(new Vector3(-9.95f, 2.5f, 9.25f)), new Vector3(1.8f, 1.5f, 1.1f), "Try entrance door", TryLockedEntranceDoor);
+        AddRoutineInteraction("Routine Breakfast Trigger", HomePoint(new Vector3(-7.75f, 2.2f, -8.83f)), new Vector3(2.1f, 1.6f, 1.3f), "Breakfast", "Eat breakfast");
+        AddRoutineInteraction("Routine Homework Trigger", HomePoint(new Vector3(8f, 2.2f, -8.58f)), new Vector3(1.4f, 1.5f, 1.4f), "Homework", "Do school work");
+        AddRoutineInteraction("Routine TV Trigger", HomePoint(new Vector3(4.75f, 2.2f, 6.67f)), new Vector3(1.8f, 1.6f, 2f), "TV", "Watch TV");
+        AddRoutineInteraction("Routine Bathroom Trigger", HomePoint(new Vector3(2.4f, 2.2f, -8.58f)), new Vector3(2.4f, 1.6f, 2.2f), "Bathroom", "Use bathroom");
+        AddRoutineInteraction("Routine Sleep Trigger", HomePoint(new Vector3(12.25f, 2.2f, -7.08f)), new Vector3(1.8f, 1.6f, 2.25f), "Sleep", "Go back to bed");
+        AddRoutineInteraction("Routine Couch Trigger", HomePoint(new Vector3(1f, 2.2f, 10.67f)), new Vector3(2.4f, 1.6f, 1.4f), "Couch", "Rest on couch");
+
+        AddCouchSpot("Couch TV Spot", HomePoint(new Vector3(4.75f, 2.9f, 6.67f)), new Vector3(0.8f, 1f, 1.4f), "TV", "The TV is the only thing that still moves for you.");
+        AddCouchSpot("Couch Food Spot", foodPlate.transform.position, new Vector3(0.9f, 0.5f, 0.9f), "Food", "It smells warm. It might as well be across the street.");
+        AddCouchSpot("Couch Hallway Spot", HomePoint(new Vector3(-4.8f, 3.2f, 3.1f)), new Vector3(1.1f, 2f, 2.5f), "Hallway", "The hallway is where footsteps appear and disappear.");
+        AddCouchSpot("Couch Window Spot", HomePoint(new Vector3(-1.1f, 3.4f, 11.7f)), new Vector3(0.5f, 1.4f, 1.2f), "Window", "Something taps sometimes. You never see what made the sound.");
+        AddCouchSpot("Parents Couch Spot", HomePoint(new Vector3(-2.75f, 3.2f, 6.42f)), new Vector3(1.7f, 1.8f, 1.3f), "Parents", string.Empty);
+        AddCouchSpot("Keys Couch Spot", forgottenKeys.transform.position, new Vector3(0.55f, 0.35f, 0.35f), "Key", "Looks like my parents forgot to take their keys with them.");
+        AddCouchSpot("Pills Couch Spot", pillBottle.transform.position, new Vector3(0.5f, 0.6f, 0.5f), "Pills", "The bottle is close enough to read, but too far to reach.");
+        AddCouchSpot("Pills Lid Couch Spot", pillsLid.transform.position, new Vector3(0.32f, 0.24f, 0.32f), "PillsLid", string.Empty);
+        AddCouchSpot("Painting Couch Spot", crookedPainting.transform.position, new Vector3(1.1f, 0.85f, 0.4f), "Painting", "The painting has been crooked for years. No one ever fixes it.");
+        AddCouchSpot("Couch End Spot", HomePoint(new Vector3(-0.9f, 2.2f, 10.67f)), new Vector3(0.65f, 0.8f, 0.9f), "CouchEnd", "The end of the couch feels impossibly far away.");
+        AddCouchSpot("Opened Cabinet Spot", HomePoint(new Vector3(4.75f, 1.3f, 6.67f)), new Vector3(0.75f, 0.65f, 0.85f), "Cabinet", "The cabinet under the TV is open. Dust collects where hands used to go.");
+        AddCouchSpot("Window Part Spot", HomePoint(new Vector3(1.2f, 3.4f, 11.9f)), new Vector3(0.35f, 1.3f, 0.8f), "WindowPart", "A thin piece of window catches the light. Outside might as well be a photograph.");
+
+        return true;
+    }
+
+    private GameObject CreateHandmadeBlock(string name, Vector3 localPosition, Vector3 localScale, Quaternion localRotation, Color color)
+    {
+        GameObject block = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        block.name = name;
+        block.transform.SetParent(handmadeHomeRoot, false);
+        block.transform.localPosition = localPosition;
+        block.transform.localRotation = localRotation;
+        block.transform.localScale = localScale;
+        block.GetComponent<Renderer>().material = CreateMaterial(color);
+        return block;
+    }
+
+    private Vector3 HomePoint(Vector3 handmadeLocalPosition)
+    {
+        return handmadeHomeRoot == null ? handmadeLocalPosition : handmadeHomeRoot.TransformPoint(handmadeLocalPosition);
+    }
+
+    private GameObject FindAuthoredObject(params string[] names)
+    {
+        for (int i = 0; i < names.Length; i++)
+        {
+            GameObject found = GameObject.Find(names[i]);
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    private void SetFoodVisible(bool visible)
+    {
+        if (foodPlate != null)
+        {
+            foodPlate.SetActive(visible);
+        }
+    }
+
+    private void SetFoodColor(Color color)
+    {
+        if (foodPlate == null)
+        {
+            return;
+        }
+
+        Renderer renderer = foodPlate.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = color;
+        }
+    }
+
+    private void SetSceneThreeCluesVisible(bool visible)
+    {
+        if (forgottenKeys != null)
+        {
+            forgottenKeys.SetActive(visible);
+        }
+
+        if (pillBottle != null)
+        {
+            pillBottle.SetActive(visible);
+        }
+
+        if (pillsLid != null)
+        {
+            pillsLid.SetActive(visible);
+        }
+
+        if (!visible)
+        {
+            pillsLidFlashing = false;
+        }
     }
 
     private void EnterClassroom()
@@ -513,22 +773,65 @@ public sealed class NightmarePrologue : MonoBehaviour
         StartCoroutine(Say("The air outside is too quiet. The alley ends in brick.", 3f));
     }
 
-    private void OpenBedroomDoor()
+    private void ToggleBedroomDoor()
     {
-        if (stage != Stage.HomeRoutine || bedroomDoorOpen)
+        if (stage != Stage.HomeRoutine)
         {
             return;
         }
 
-        bedroomDoorOpen = true;
-        if (bedroomDoorCollider != null)
+        ToggleDoor(bedroomDoor, bedroomDoorCollider, ref bedroomDoorOpen, bedroomDoorClosedPosition, bedroomDoorClosedRotation, new Vector3(-0.48f, 0f, 0.55f), Quaternion.Euler(0f, 75f, 0f), "bedroom");
+    }
+
+    private void ToggleBathroomDoor()
+    {
+        if (stage != Stage.HomeRoutine)
         {
-            bedroomDoorCollider.enabled = false;
+            return;
         }
 
-        bedroomDoor.transform.position += new Vector3(-0.45f, 0f, 0.55f);
-        bedroomDoor.transform.rotation = Quaternion.Euler(0f, 75f, 0f);
-        StartCoroutine(Say("The bedroom door opens.", 1.4f));
+        ToggleDoor(bathroomDoor, bathroomDoorCollider, ref bathroomDoorOpen, bathroomDoorClosedPosition, bathroomDoorClosedRotation, new Vector3(-0.48f, 0f, 0.55f), Quaternion.Euler(0f, 75f, 0f), "bathroom");
+    }
+
+    private void ToggleDoor(GameObject door, Collider doorCollider, ref bool isOpen, Vector3 closedPosition, Quaternion closedRotation, Vector3 openOffset, Quaternion openRotation, string label)
+    {
+        if (door == null)
+        {
+            return;
+        }
+
+        isOpen = !isOpen;
+        if (isOpen)
+        {
+            door.transform.position = closedPosition + closedRotation * openOffset;
+            door.transform.rotation = closedRotation * openRotation;
+            if (doorCollider != null)
+            {
+                doorCollider.enabled = false;
+            }
+
+            StartCoroutine(Say("The " + label + " door opens.", 1.2f));
+            return;
+        }
+
+        door.transform.position = closedPosition;
+        door.transform.rotation = closedRotation;
+        if (doorCollider != null)
+        {
+            doorCollider.enabled = true;
+        }
+
+        StartCoroutine(Say("The " + label + " door closes.", 1.2f));
+    }
+
+    private void TryLockedEntranceDoor()
+    {
+        if (stage != Stage.HomeRoutine)
+        {
+            return;
+        }
+
+        StartCoroutine(Say("The entrance door is locked.", 1.5f));
     }
 
     private void StartAttackSequence()
@@ -571,7 +874,7 @@ public sealed class NightmarePrologue : MonoBehaviour
     private void EnterBedroom()
     {
         stage = Stage.Bedroom;
-        Teleport(new Vector3(-5.5f, 0.05f, -14.4f), 135f);
+        Teleport(HomePoint(new Vector3(12.25f, 0.14f, -7.08f)), 135f);
         playerCamera.fieldOfView = 52f;
         locked = true;
         StartCoroutine(WakeUpSequence());
@@ -1093,20 +1396,30 @@ public sealed class NightmarePrologue : MonoBehaviour
         sequenceRunning = false;
         locked = true;
         bedroomDoorOpen = false;
+        bathroomDoorOpen = false;
         if (bedroomDoor != null)
         {
-            bedroomDoor.transform.position = new Vector3(-4.55f, 1.1f, -16.05f);
-            bedroomDoor.transform.rotation = Quaternion.identity;
+            bedroomDoor.transform.position = bedroomDoorClosedPosition;
+            bedroomDoor.transform.rotation = bedroomDoorClosedRotation;
         }
         if (bedroomDoorCollider != null)
         {
             bedroomDoorCollider.enabled = true;
         }
+        if (bathroomDoor != null)
+        {
+            bathroomDoor.transform.position = bathroomDoorClosedPosition;
+            bathroomDoor.transform.rotation = bathroomDoorClosedRotation;
+        }
+        if (bathroomDoorCollider != null)
+        {
+            bathroomDoorCollider.enabled = true;
+        }
         playerCamera.fieldOfView = Mathf.Lerp(52f, 47f, Mathf.Clamp01((day - 1) / 3f));
         volumeVignette.intensity.Override(day == 1 ? 0.32f : day == 2 ? 0.44f : 0.58f);
         chromaticAberration.intensity.Override(day == 1 ? 0.06f : day == 2 ? 0.11f : 0.18f);
 
-        Teleport(new Vector3(-5.5f, 0.05f, -14.4f), 135f);
+        Teleport(HomePoint(new Vector3(12.25f, 0.14f, -7.08f)), 135f);
         SetNextRoutineObjective();
 
         if (day == 1)
@@ -1338,7 +1651,8 @@ public sealed class NightmarePrologue : MonoBehaviour
         activeCouchObjective = string.Empty;
         couchInspecting = false;
         inspectedCouchSpot = null;
-        foodPlate.SetActive(false);
+        SetFoodVisible(false);
+        SetSceneThreeCluesVisible(false);
         tvGlow.GetComponent<Renderer>().material.color = new Color(0.02f, 0.03f, 0.035f);
         TeleportToCouch();
         StartCoroutine(CouchSceneOneSequence());
@@ -1354,6 +1668,8 @@ public sealed class NightmarePrologue : MonoBehaviour
         activeCouchObjective = string.Empty;
         couchInspecting = false;
         inspectedCouchSpot = null;
+        SetFoodVisible(false);
+        SetSceneThreeCluesVisible(false);
         TeleportToCouch();
         StartCoroutine(CouchSceneTwoSequence());
     }
@@ -1368,6 +1684,8 @@ public sealed class NightmarePrologue : MonoBehaviour
         activeCouchObjective = string.Empty;
         couchInspecting = false;
         inspectedCouchSpot = null;
+        SetFoodVisible(false);
+        SetSceneThreeCluesVisible(true);
         TeleportToCouch();
         StartCoroutine(CouchSceneThreeSequence());
     }
@@ -1375,8 +1693,8 @@ public sealed class NightmarePrologue : MonoBehaviour
     private void TeleportToCouch()
     {
         character.enabled = false;
-        player.position = new Vector3(0f, 0.05f, -24.7f);
-        cameraPivot.localPosition = new Vector3(0.15f, 1.18f, 0.28f);
+        player.position = HomePoint(new Vector3(1f, 0.14f, 10.67f));
+        cameraPivot.localPosition = CouchLyingCameraPosition;
         couchBaseYaw = -18f;
         couchBasePitch = -10f;
         yaw = couchBaseYaw;
@@ -1415,14 +1733,14 @@ public sealed class NightmarePrologue : MonoBehaviour
             timer += Time.deltaTime;
             float progress = Mathf.Clamp01(timer / duration) * 20f;
             dialogueText.text = "Trying to get up...\n" + Mathf.RoundToInt(progress) + "%";
-            cameraPivot.localPosition = Vector3.Lerp(new Vector3(0.15f, 1.18f, 0.28f), new Vector3(0.15f, 1.34f, 0.45f), timer / duration);
+            cameraPivot.localPosition = Vector3.Lerp(CouchLyingCameraPosition, CouchStrainingCameraPosition, timer / duration);
             pitch = Mathf.Lerp(couchBasePitch, 6f, timer / duration);
             yield return null;
         }
 
         dialogueText.text = string.Empty;
         yield return Say("Your body gives out.", 1.6f);
-        cameraPivot.localPosition = new Vector3(0.15f, 1.18f, 0.28f);
+        cameraPivot.localPosition = CouchLyingCameraPosition;
         pitch = couchBasePitch;
         activeCouchObjective = "Help";
         objectiveText.text = "Scene 1\nClick to call for help.";
@@ -1474,7 +1792,7 @@ public sealed class NightmarePrologue : MonoBehaviour
     {
         fade.color = Color.black;
         tvGlow.GetComponent<Renderer>().material.color = new Color(0.02f, 0.03f, 0.035f);
-        foodPlate.SetActive(false);
+        SetFoodVisible(false);
         mom.gameObject.SetActive(true);
         dad.gameObject.SetActive(true);
         mom.position = new Vector3(5.9f, 0f, -23.5f);
@@ -1492,8 +1810,8 @@ public sealed class NightmarePrologue : MonoBehaviour
         yield return DotPause();
         mom.position = new Vector3(3.8f, 0f, -17f);
         yield return MovePerson(mom, mom.position, new Vector3(0.2f, 0f, -22.4f), 2.4f);
-        foodPlate.SetActive(true);
-        foodPlate.GetComponent<Renderer>().material.color = new Color(0.68f, 0.56f, 0.36f);
+        SetFoodVisible(true);
+        SetFoodColor(new Color(0.68f, 0.56f, 0.36f));
         yield return Say("Mother: I brought you something to eat.", 2.4f);
         yield return Say("Lacey: I can't move.", 2.2f);
         yield return Say("Your mouth barely makes the shape of it.", 2.4f);
@@ -1509,6 +1827,7 @@ public sealed class NightmarePrologue : MonoBehaviour
         sequenceRunning = true;
         activeCouchObjective = string.Empty;
         objectiveText.text = string.Empty;
+        SetFoodVisible(false);
         yield return Say("It looks good. Warm. Close.", 2.6f);
         yield return Say("All you can do is look at it.", 2.8f);
         float timer = 0f;
@@ -1559,7 +1878,8 @@ public sealed class NightmarePrologue : MonoBehaviour
     private IEnumerator CouchSceneThreeSequence()
     {
         fade.color = Color.black;
-        foodPlate.SetActive(false);
+        SetFoodVisible(false);
+        SetSceneThreeCluesVisible(true);
         tvGlow.GetComponent<Renderer>().material.color = new Color(0.12f, 0.19f, 0.24f);
         livingRoomLight.intensity = 1.7f;
         RenderSettings.fogDensity = 0.028f;
@@ -1632,8 +1952,8 @@ public sealed class NightmarePrologue : MonoBehaviour
         yield return MovePerson(dad, dad.position, new Vector3(5.55f, 0f, -20.7f), 2f);
         dad.gameObject.SetActive(false);
         yield return MovePerson(mom, mom.position, new Vector3(0.15f, 0f, -22.35f), 2.6f);
-        foodPlate.SetActive(true);
-        foodPlate.GetComponent<Renderer>().material.color = new Color(0.7f, 0.58f, 0.38f);
+        SetFoodVisible(true);
+        SetFoodColor(new Color(0.7f, 0.58f, 0.38f));
         yield return Say("Mother: I brought you something to eat.", 2.4f);
         yield return MovePerson(mom, mom.position, new Vector3(4.8f, 0f, -18.3f), 2.4f);
         mom.gameObject.SetActive(false);
@@ -1647,6 +1967,7 @@ public sealed class NightmarePrologue : MonoBehaviour
         sequenceRunning = true;
         activeCouchObjective = string.Empty;
         objectiveText.text = string.Empty;
+        SetFoodVisible(false);
         yield return Say("Another plate. Close enough to smell.", 2.5f);
         yield return Say("All you can do is look at it.", 2.5f);
         activeCouchObjective = "TVSleep3";
@@ -1720,6 +2041,17 @@ public sealed class NightmarePrologue : MonoBehaviour
         cube.transform.localScale = scale;
         cube.GetComponent<Renderer>().material = CreateMaterial(color);
         return cube;
+    }
+
+    private GameObject CreateCylinder(string name, Transform parent, Vector3 position, Vector3 scale, Color color)
+    {
+        GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        cylinder.name = name;
+        cylinder.transform.SetParent(parent);
+        cylinder.transform.position = position;
+        cylinder.transform.localScale = scale;
+        cylinder.GetComponent<Renderer>().material = CreateMaterial(color);
+        return cylinder;
     }
 
     private void CreatePerson(string name, Transform parent, Vector3 position, Color color, string label)
@@ -1834,9 +2166,9 @@ public sealed class NightmarePrologue : MonoBehaviour
                 return false;
             }
 
-            if (name.Contains("Bedroom Door"))
+            if (name.Contains("Bedroom Door") || name.Contains("Bathroom Door") || name.Contains("Entrance Door"))
             {
-                return stage == Stage.HomeRoutine && instance != null && !instance.bedroomDoorOpen;
+                return stage == Stage.HomeRoutine;
             }
 
             if (!string.IsNullOrEmpty(RoutineId) && stage != Stage.HomeRoutine)
